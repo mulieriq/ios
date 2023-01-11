@@ -878,7 +878,7 @@ class NCCollectionViewCommon: UIViewController, UIGestureRecognizerDelegate, UIS
     func tapButton3(_ sender: Any) {
 
         if let viewController = appDelegate.window?.rootViewController {
-            NCCreateScanDocument.shared.openScannerDocument(viewController: viewController)
+            NCDocumentCamera.shared.openScannerDocument(viewController: viewController)
         }
     }
 
@@ -972,8 +972,7 @@ class NCCollectionViewCommon: UIViewController, UIGestureRecognizerDelegate, UIS
 
         if listMenuItems.count > 0 {
             UIMenuController.shared.menuItems = listMenuItems
-            UIMenuController.shared.setTargetRect(CGRect(x: touchPoint.x, y: touchPoint.y, width: 0, height: 0), in: collectionView)
-            UIMenuController.shared.setMenuVisible(true, animated: true)
+            UIMenuController.shared.showMenu(from: collectionView, rect: CGRect(x: touchPoint.x, y: touchPoint.y, width: 0, height: 0))
         }
     }
 
@@ -982,7 +981,7 @@ class NCCollectionViewCommon: UIViewController, UIGestureRecognizerDelegate, UIS
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
 
         if #selector(pasteFilesMenu) == action {
-            if UIPasteboard.general.items.count > 0 {
+            if !UIPasteboard.general.items.isEmpty, !(metadataFolder?.e2eEncrypted ?? false) {
                 return true
             }
         }
@@ -1367,7 +1366,7 @@ extension NCCollectionViewCommon: UICollectionViewDelegate {
 
         }, actionProvider: { _ in
 
-            return NCFunctionCenter.shared.contextMenuConfiguration(ocId: metadata.ocId, viewController: self, enableDeleteLocal: true, enableViewInFolder: false, image: image)
+            return NCContextMenu().viewMenu(ocId: metadata.ocId, viewController: self, enableDeleteLocal: true, enableViewInFolder: false, image: image)
         })
     }
 

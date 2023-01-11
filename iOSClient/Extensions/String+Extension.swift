@@ -1,5 +1,5 @@
 //
-//  String+Extensions.swift
+//  String+Extension.swift
 //  Nextcloud
 //
 //  Created by Marino Faggiana on 22/12/20.
@@ -23,7 +23,7 @@
 
 import Foundation
 import UIKit
-import CommonCrypto
+import CryptoKit
 
 extension String {
 
@@ -51,7 +51,15 @@ extension String {
     }
 
     func md5() -> String {
-        //https://stackoverflow.com/a/32166735/9506784
+        let digest = Insecure.MD5.hash(data: self.data(using: .utf8) ?? Data())
+        return digest.map {
+            String(format: "%02hhx", $0)
+        }.joined()
+    }
+
+    /* DEPRECATED iOS 13
+    func md5() -> String {
+        // https://stackoverflow.com/a/32166735/9506784
 
         let length = Int(CC_MD5_DIGEST_LENGTH)
         let messageData = self.data(using: .utf8) ?? Data()
@@ -69,6 +77,7 @@ extension String {
 
         return digestData.map { String(format: "%02hhx", $0) }.joined()
     }
+    */
 
     var urlEncoded: String? {
         // +        for historical reason, most web servers treat + as a replacement of whitespace

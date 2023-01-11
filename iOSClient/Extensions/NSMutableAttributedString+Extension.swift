@@ -1,11 +1,11 @@
 //
-//  UIApplication+Extensions.swift
+//  NSMutableAttributedString+Extension.swift
 //  Nextcloud
 //
-//  Created by Henrik Storch on 15.12.2021.
-//  Copyright (c) 2021 Henrik Storch. All rights reserved.
+//  Created by Marino Faggiana on 26/05/21.
+//  Copyright © 2021 Marino Faggiana. All rights reserved.
 //
-//  Author Henrik Storch <henrik.storch@nextcloud.com>
+//  Author Marino Faggiana <marino.faggiana@nextcloud.com>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -20,15 +20,19 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+import Foundation
 import UIKit
 
-extension UIApplication {
-    // indicates if current device is in landscape orientation
-    var isLandscape: Bool {
-        if UIDevice.current.orientation.isValidInterfaceOrientation {
-            return UIDevice.current.orientation.isLandscape
-        } else {
-            return windows.first?.windowScene?.interfaceOrientation.isLandscape ?? false
+extension NSMutableAttributedString {
+
+    func setColor(color: UIColor, font: UIFont? = nil, forText stringValue: String) {
+
+        let range: NSRange = self.mutableString.range(of: stringValue, options: .caseInsensitive)
+
+        self.addAttribute(NSAttributedString.Key.foregroundColor, value: color, range: range)
+        if let font = font {
+            self.addAttribute(NSAttributedString.Key.font, value: font, range: range)
         }
     }
 }

@@ -75,8 +75,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         CCUtility.createDirectoryStandard()
         CCUtility.emptyTemporaryDirectory()
 
-        NKCommon.shared.setup(delegate: NCNetworking.shared)
-        NKCommon.shared.setup(userAgent: userAgent)
+        NextcloudKit.shared.setup(delegate: NCNetworking.shared)
+        NextcloudKit.shared.setup(userAgent: userAgent)
 
         startTimerErrorNetworking()
 
@@ -110,16 +110,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // Activate user account
         if let activeAccount = NCManageDatabase.shared.getActiveAccount() {
 
-            // FIX 3.0.5 lost urlbase
-            if activeAccount.urlBase.count == 0 {
-                let user = activeAccount.user + " "
-                let urlBase = activeAccount.account.replacingOccurrences(of: user, with: "")
-                activeAccount.urlBase = urlBase
-                NCManageDatabase.shared.updateAccount(activeAccount)
-            }
-
             settingAccount(activeAccount.account, urlBase: activeAccount.urlBase, user: activeAccount.user, userId: activeAccount.userId, password: CCUtility.getPassword(activeAccount.account))
-
             NCBrandColor.shared.settingThemingColor(account: activeAccount.account)
 
         } else {
@@ -128,7 +119,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             if let bundleID = Bundle.main.bundleIdentifier {
                 UserDefaults.standard.removePersistentDomain(forName: bundleID)
             }
-
             NCBrandColor.shared.createImagesThemingColor()
         }
 
@@ -158,7 +148,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // Intro
         if NCBrandOptions.shared.disable_intro {
             CCUtility.setIntro(true)
-            if account == "" {
+            if account.isEmpty {
                 openLogin(viewController: nil, selector: NCGlobal.shared.introLogin, openLoginWeb: false)
             }
         } else {
@@ -216,20 +206,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
         NKCommon.shared.writeLog("[INFO] Application will enter in foreground")
 
-        // Account changed ??
         if activeAccount.account != account {
             settingAccount(activeAccount.account, urlBase: activeAccount.urlBase, user: activeAccount.user, userId: activeAccount.userId, password: CCUtility.getPassword(activeAccount.account))
+        } else {
+            // Unlock E2EE
+            NCNetworkingE2EE.shared.unlockAll(account: self.account)
+            // Request Service Server Nextcloud
+            NCService.shared.startRequestServicesServer()
         }
 
         // Required unsubscribing / subscribing
         NCPushNotification.shared().pushNotification()
 
-        // Request Service Server Nextcloud
-        NCService.shared.startRequestServicesServer()
-
-        // Unlock E2EE
-        NCNetworkingE2EE.shared.unlockAll(account: account)
-        
         // Request TouchID, FaceID
         enableTouchFaceID()
         
@@ -295,12 +283,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
         NCNetworking.shared.cancelAllDownloadTransfer()
 
-        let content = UNMutableNotificationContent()
-        content.title = NCBrandOptions.shared.brand
-        content.body = NSLocalizedString("_keep_running_", comment: "")
-        let req = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-        let notificationCenter = UNUserNotificationCenter.current()
-        notificationCenter.add(req)
+        if UIApplication.shared.backgroundRefreshStatus == .available {
+
+            let content = UNMutableNotificationContent()
+            content.title = NCBrandOptions.shared.brand
+            content.body = NSLocalizedString("_keep_running_", comment: "")
+            let req = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+            let notificationCenter = UNUserNotificationCenter.current()
+            notificationCenter.add(req)
+        }
 
         NKCommon.shared.writeLog("bye bye")
     }
@@ -317,7 +308,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
         // Unlock E2EE
         NCNetworkingE2EE.shared.unlockAll(account: account)
-        
+
         // Start services
         NCService.shared.startRequestServicesServer()
 
@@ -377,7 +368,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             return
         }
 
-        NKCommon.shared.setup(delegate: NCNetworking.shared)
+        NextcloudKit.shared.setup(delegate: NCNetworking.shared)
 
         NCAutoUpload.shared.initAutoUpload(viewController: nil) { items in
             NKCommon.shared.writeLog("[INFO] Refresh task auto upload with \(items) uploads")
@@ -582,10 +573,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
         _ = NCFunctionCenter.shared
 
-        NKCommon.shared.setup(account: account, user: user, userId: userId, password: password, urlBase: urlBase)
+        NextcloudKit.shared.setup(account: account, user: user, userId: userId, password: password, urlBase: urlBase)
         let serverVersionMajor = NCManageDatabase.shared.getCapabilitiesServerInt(account: account, elements: NCElementsJSON.shared.capabilitiesVersionMajor)
         if serverVersionMajor > 0 {
-            NKCommon.shared.setup(nextcloudVersion: serverVersionMajor)
+            NextcloudKit.shared.setup(nextcloudVersion: serverVersionMajor)
         }
         NCKTVHTTPCache.shared.restartProxy(user: user, password: password)
 
@@ -849,9 +840,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                     }
                     
                 case NCGlobal.shared.actionScanDocument:
-                    
-                    NCCreateScanDocument.shared.openScannerDocument(viewController: rootViewController)
-                    
+
+                    NCDocumentCamera.shared.openScannerDocument(viewController: rootViewController)
+
                 case NCGlobal.shared.actionTextDocument:
                     
                     guard let navigationController = UIStoryboard(name: "NCCreateFormUploadDocuments", bundle: nil).instantiateInitialViewController(), let directEditingCreators = NCManageDatabase.shared.getDirectEditingCreators(account: account), let directEditingCreator = directEditingCreators.first(where: { $0.editor == NCGlobal.shared.editorText}) else { return false }

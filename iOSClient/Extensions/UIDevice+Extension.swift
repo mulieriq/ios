@@ -1,11 +1,11 @@
 //
-//  NCManageEndToEndEncryption.h
+//  UIDevice+Extension.swift
 //  Nextcloud
 //
-//  Created by Marino Faggiana on 13/10/17.
-//  Copyright © 2017 Marino Faggiana. All rights reserved.
+//  Created by Federico Malagoni on 23/02/22.
+//  Copyright © 2022 Federico Malagoni. All rights reserved.
 //
-//  Author Marino Faggiana <marino.faggiana@nextcloud.com>
+//  Author Federico Malagoni <federico.malagoni@astrairidium.com>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -21,12 +21,18 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#import <XLForm.h>
+import Foundation
 
-@class NCEndToEndInitialize;
+extension UIDevice {
 
-@interface NCManageEndToEndEncryption : XLFormViewController
-
-@property (nonatomic, strong) NCEndToEndInitialize *endToEndInitialize;
-
-@end
+    var hasNotch: Bool {
+        if #available(iOS 11.0, *) {
+            if UIApplication.shared.windows.isEmpty { return false }
+            let top = UIApplication.shared.windows[0].safeAreaInsets.top
+            return top > 20
+        } else {
+            // Fallback on earlier versions
+            return false
+        }
+    }
+}

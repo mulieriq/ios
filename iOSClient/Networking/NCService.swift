@@ -39,7 +39,6 @@ class NCService: NSObject {
     @objc public func startRequestServicesServer() {
 
         NCManageDatabase.shared.clearAllAvatarLoaded()
-
         guard !appDelegate.account.isEmpty else { return }
 
         addInternalTypeIdentifier()
@@ -181,7 +180,7 @@ class NCService: NSObject {
 
             // Setup communication
             if serverVersionMajor > 0 {
-                NKCommon.shared.setup(nextcloudVersion: serverVersionMajor)
+                NextcloudKit.shared.setup(nextcloudVersion: serverVersionMajor)
             }
 
             // Theming
